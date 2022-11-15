@@ -29,5 +29,9 @@ parser.add_argument('--batch_size', type=int, default=16, help='Batch size for t
 parser.add_argument('--workers', type=int, default=12, help='Num of workers in dataloader')
 parser.add_argument('--use_coco', action='store_true', default=False, help='use COCO captions')
 parser.add_argument('--combine_type', type=str, default='concat', help='method to combine sketch+text')
+parser.add_argument('--path_aux', type=str, default='/mnt/qb/akata/jbader40/sbir/sem_pcyc/pretrained_models')
+parser.add_argument('--project', default='Sample_Project', type=str)
+parser.add_argument('--group', default='Sample_Group', type=str)
+parser.add_argument('--savename', default='group_plus_seed', type=str)
 
 opts = parser.parse_args()

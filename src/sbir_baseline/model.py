@@ -60,7 +60,7 @@ class TripletNetwork(pl.LightningModule):
         rank1 = rank.le(1).sum().numpy() / rank.shape[0]
         rank5 = rank.le(5).sum().numpy() / rank.shape[0]
         rank10 = rank.le(10).sum().numpy() / rank.shape[0]
-        rankM = rank.mean().numpy()
+        rankM = rank.mean()
 
         print ('Metrics -- rank1: {}, rank5: {}, rank10: {}, meanK: {}'.format(
             rank1, rank5, rank10, rankM))

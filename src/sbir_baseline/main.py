@@ -5,9 +5,11 @@ from torch.utils.data import DataLoader
 from options import opts
 from model import TripletNetwork
 from dataloader import OursScene, SketchyScene, SketchyCOCO, Sketchy
+import wandb
+import os
 
 from pytorch_lightning import Trainer
-from pytorch_lightning.loggers import TensorBoardLogger
+from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 
 
@@ -47,7 +49,13 @@ if __name__ == '__main__':
         dataset=val_dataset, batch_size=opts.batch_size, num_workers=opts.workers)
 
     # model = TripletNetwork().load_from_checkpoint(checkpoint_path="saved_model/our-dataset-epoch=103-top10=0.52.ckpt")
-    model = TripletNetwork().load_from_checkpoint(checkpoint_path="saved_model/our-dataset-epoch=1034-top10=0.53.ckpt")
+    model = TripletNetwork()
+    wandb_key = '1cdc17e811df70a17e4d9174c95f5b4e9f4a01dc'
+    _ = os.system('wandb login {}'.format(wandb_key))
+    os.environ['WANDB_API_KEY'] = wandb_key
+    save_path = os.path.join(opts.path_aux, 'CheckPoints', 'wandb')
+    logger = WandbLogger(project=opts.project, group=opts.group, name=opts.savename, dir=save_path,
+                         settings=wandb.Settings(start_method='fork'))
 
     logger = TensorBoardLogger("tb_logs", name=opts.exp_name)
     
@@ -72,19 +80,19 @@ if __name__ == '__main__':
                 logger=logger,
                 callbacks=[checkpoint_callback])
 
-    print ('validating the pre-trained model...')
-    trainer.validate(model, val_loader)
-    top1_values = []
+    # print ('validating the pre-trained model...')
+    # trainer.validate(model, val_loader)
+    # top1_values = []
     # for category in val_loader.dataset.all_categories:
         # val_loader.dataset.category = category
         # print ('Evaluating category: ', category)
-    top1_values.append(trainer.validate(model, val_loader)[0]['top1'])
-    print ('Top1 score: ', np.mean(top1_values))
-    input ('press any key to contrinue training')
+    # top1_values.append(trainer.validate(model, val_loader)[0]['top1'])
+    # print ('Top1 score: ', np.mean(top1_values))
+    # input ('press any key to contrinue training')
 
     # trainer.tune(model)
 
-    # trainer.fit(model, train_loader, val_loader)
-
+    trainer.fit(model, train_loader, val_loader)
+    trainer.validate(model, val_loader)
     # Retrieve model
     # checkpoint_callback.best_model_path
