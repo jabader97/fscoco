@@ -69,7 +69,7 @@ if __name__ == '__main__':
                 # auto_lr_find=True,
                 benchmark=True,
                 check_val_every_n_epoch=10,
-                max_epochs=100000,
+                max_epochs=100,
                 # precision=64,
                 min_steps=100, min_epochs=0,
                 accumulate_grad_batches=8,
