@@ -56,8 +56,6 @@ if __name__ == '__main__':
     save_path = os.path.join(opts.path_aux, 'CheckPoints', 'wandb')
     logger = WandbLogger(project=opts.project, group=opts.group, name=opts.savename, dir=save_path,
                          settings=wandb.Settings(start_method='fork'))
-
-    logger = TensorBoardLogger("tb_logs", name=opts.exp_name)
     
     checkpoint_callback = ModelCheckpoint(monitor="top5",
                 mode="max",
