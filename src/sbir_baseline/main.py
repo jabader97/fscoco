@@ -88,7 +88,7 @@ if __name__ == '__main__':
     # print ('Top1 score: ', np.mean(top1_values))
     # input ('press any key to contrinue training')
 
-    # trainer.tune(model)
+    trainer.tune(model)
 
     trainer.fit(model, train_loader, val_loader)
     trainer.validate(model, val_loader)
