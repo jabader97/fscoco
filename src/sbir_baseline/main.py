@@ -65,15 +65,15 @@ if __name__ == '__main__':
                 filename="%s-{epoch:02d}-{top10:.2f}"%opts.exp_name)
 
     trainer = Trainer(gpus=-1, auto_select_gpus=True, # specifies all available GPUs
-                # auto_scale_batch_size=True,
-                # auto_lr_find=True,
+                auto_scale_batch_size=True,
+                auto_lr_find=True,
                 benchmark=True,
                 check_val_every_n_epoch=10,
                 max_epochs=100,
                 # precision=64,
                 min_steps=100, min_epochs=0,
                 accumulate_grad_batches=8,
-                # profiler="advanced",
+                profiler="advanced",
                 resume_from_checkpoint=None, # "some/path/to/my_checkpoint.ckpt"
                 logger=logger,
                 callbacks=[checkpoint_callback])
