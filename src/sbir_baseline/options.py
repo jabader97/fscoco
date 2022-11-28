@@ -34,5 +34,6 @@ parser.add_argument('--project', default='Sample_Project', type=str)
 parser.add_argument('--group', default='Sample_Group', type=str)
 parser.add_argument('--savename', default='group_plus_seed', type=str)
 parser.add_argument('--triplet_margin', default=0.2, type=float, help='Triplet loss margin.')
+parser.add_argument('--grad_batches', default=8, type=int, help='Accumulate grad batches')
 
 opts = parser.parse_args()

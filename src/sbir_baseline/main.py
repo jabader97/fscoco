@@ -72,7 +72,7 @@ if __name__ == '__main__':
                 max_epochs=100,
                 # precision=64,
                 min_steps=100, min_epochs=0,
-                accumulate_grad_batches=8,
+                accumulate_grad_batches=opts.grad_batches,
                 # profiler="advanced",
                 resume_from_checkpoint=None, # "some/path/to/my_checkpoint.ckpt"
                 logger=logger,
