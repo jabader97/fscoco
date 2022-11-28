@@ -6,11 +6,11 @@ import pytorch_lightning as pl
 
 class TripletNetwork(pl.LightningModule):
 
-    def __init__(self):
+    def __init__(self, opts):
         super().__init__()
         self.img_embedding_network = VGG_Network()
         # self.img_embedding_network = pvt_v2.pvt_v2_b0(pretrained=True, num_classes=0)
-        self.loss = nn.TripletMarginLoss(margin=0.2)
+        self.loss = nn.TripletMarginLoss(margin=opts.triplet_margin)
         self.batch_size=1
 
     def forward(self, x):

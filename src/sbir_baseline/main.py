@@ -49,7 +49,7 @@ if __name__ == '__main__':
         dataset=val_dataset, batch_size=opts.batch_size, num_workers=opts.workers)
 
     # model = TripletNetwork().load_from_checkpoint(checkpoint_path="saved_model/our-dataset-epoch=103-top10=0.52.ckpt")
-    model = TripletNetwork()
+    model = TripletNetwork(opts)
     wandb_key = '1cdc17e811df70a17e4d9174c95f5b4e9f4a01dc'
     _ = os.system('wandb login {}'.format(wandb_key))
     os.environ['WANDB_API_KEY'] = wandb_key
@@ -65,15 +65,15 @@ if __name__ == '__main__':
                 filename="%s-{epoch:02d}-{top10:.2f}"%opts.exp_name)
 
     trainer = Trainer(gpus=-1, auto_select_gpus=True, # specifies all available GPUs
-                auto_scale_batch_size=True,
-                auto_lr_find=True,
+                # auto_scale_batch_size=True,
+                # auto_lr_find=True,
                 benchmark=True,
                 check_val_every_n_epoch=10,
                 max_epochs=100,
                 # precision=64,
                 min_steps=100, min_epochs=0,
                 accumulate_grad_batches=8,
-                profiler="advanced",
+                # profiler="advanced",
                 resume_from_checkpoint=None, # "some/path/to/my_checkpoint.ckpt"
                 logger=logger,
                 callbacks=[checkpoint_callback])
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     # print ('Top1 score: ', np.mean(top1_values))
     # input ('press any key to contrinue training')
 
-    trainer.tune(model)
+    # trainer.tune(model)
 
     trainer.fit(model, train_loader, val_loader)
     trainer.validate(model, val_loader)
