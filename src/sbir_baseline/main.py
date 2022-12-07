@@ -8,7 +8,7 @@ from dataloader import OursScene, SketchyScene, SketchyCOCO, Sketchy
 import wandb
 import os
 
-from pytorch_lightning import Trainer
+from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 
@@ -20,6 +20,7 @@ if __name__ == '__main__':
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
+    seed_everything(opts.seed)
     # Our Dataset
     train_dataset = OursScene(opts, mode='train',
         transform=dataset_transforms)
