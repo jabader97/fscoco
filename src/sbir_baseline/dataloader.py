@@ -44,7 +44,8 @@ class OursScene(torch.utils.data.Dataset):
 
         sketch_file = glob.glob(os.path.join(self.opt.root_dir, 'raster_sketches', '*', '%s.jpg'%filename))[0]
         image_file = glob.glob(os.path.join(self.opt.root_dir, 'images', '*', '%s.jpg'%filename))[0]
-        negative_file = np.random.choice(self.all_image_files, 1)[0]
+        negative_id = np.random.choice(np.delete(self.all_ids, index), 1)[0]
+        negative_file = glob.glob(os.path.join(self.opt.root_dir, 'images', '*', '%s.jpg'%negative_id))[0]
 
         sketch_data = Image.open(sketch_file).convert('RGB')
         image_data = Image.open(image_file).convert('RGB')
