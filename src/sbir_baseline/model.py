@@ -71,3 +71,42 @@ class TripletNetwork(pl.LightningModule):
         self.log('meanK', rankM)
         
         return rank1, rank5, rank10, rankM
+
+    def test_step(self, val_batch, batch_idx):
+        # defines the validation loop
+        sk_tensor, img_tensor, neg_tensor = val_batch
+
+        sk_feature = self.img_embedding_network(sk_tensor)
+        img_feature = self.img_embedding_network(img_tensor)
+        neg_feature = self.img_embedding_network(neg_tensor)
+        query_feature = sk_feature
+        loss = self.loss(query_feature, img_feature, neg_feature)
+        self.log('test_loss', loss)
+        return query_feature, img_feature
+
+    def test_epoch_end(self, validation_step_outputs):
+        Len = len(validation_step_outputs)
+        query_feature_all = torch.cat([validation_step_outputs[i][0] for i in range(Len)])
+        image_feature_all = torch.cat([validation_step_outputs[i][1] for i in range(Len)])
+
+        rank = torch.zeros(len(query_feature_all))
+        for idx, query_feature in enumerate(query_feature_all):
+            distance = F.pairwise_distance(query_feature.unsqueeze(0), image_feature_all)
+            target_distance = F.pairwise_distance(
+                query_feature.unsqueeze(0), image_feature_all[idx].unsqueeze(0))
+            rank[idx] = distance.le(target_distance).sum()
+
+        rank1 = rank.le(1).sum().numpy() / rank.shape[0]
+        rank5 = rank.le(5).sum().numpy() / rank.shape[0]
+        rank10 = rank.le(10).sum().numpy() / rank.shape[0]
+        rankM = rank.mean()
+
+        print('Metrics -- rank1: {}, rank5: {}, rank10: {}, meanK: {}'.format(
+            rank1, rank5, rank10, rankM))
+
+        self.log('test_top1', rank1)
+        self.log('test_top5', rank5)
+        self.log('test_top10', rank10)
+        self.log('test_meanK', rankM)
+
+        return rank1, rank5, rank10, rankM

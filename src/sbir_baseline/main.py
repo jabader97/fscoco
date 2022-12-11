@@ -1,4 +1,5 @@
 import numpy as np
+import torch.utils.data.dataset
 from torchvision import transforms
 from torch.utils.data import DataLoader
 
@@ -22,11 +23,11 @@ if __name__ == '__main__':
 
     seed_everything(opts.seed)
     # Our Dataset
-    train_dataset = OursScene(opts, mode='train',
+    full_dataset = OursScene(opts, mode='train',
         transform=dataset_transforms)
-    val_dataset = OursScene(opts, mode='val',
+    test_dataset = OursScene(opts, mode='val',
         transform=dataset_transforms)
-
+    train_dataset, val_dataset = torch.utils.data.random_split(full_dataset, [6000, 1000])
     # # SketchyScene Dataset
     # train_dataset = SketchyScene(opts, mode='train',
     #     transform=dataset_transforms)
@@ -48,6 +49,8 @@ if __name__ == '__main__':
         dataset=train_dataset, batch_size=opts.batch_size, num_workers=opts.workers)
     val_loader = DataLoader(
         dataset=val_dataset, batch_size=opts.batch_size, num_workers=opts.workers)
+    test_loader = DataLoader(
+        dataset=test_dataset, batch_size=opts.batch_size, num_workers=opts.workers)
 
     # model = TripletNetwork().load_from_checkpoint(checkpoint_path="saved_model/our-dataset-epoch=103-top10=0.52.ckpt")
     model = TripletNetwork(opts)
@@ -92,6 +95,6 @@ if __name__ == '__main__':
     # trainer.tune(model)
 
     trainer.fit(model, train_loader, val_loader)
-    trainer.validate(model, val_loader)
+    trainer.test(model, test_loader)
     # Retrieve model
     # checkpoint_callback.best_model_path
