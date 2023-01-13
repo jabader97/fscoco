@@ -25,9 +25,13 @@ class Photo2Sketch(nn.Module):
 		self.optimizer.zero_grad()
 
 		raster_sketch, image, vector_sketch, batch_num_strokes, batch_stroke_len = batch
-		raster_sketch = raster_sketch.cuda()
-		image = image.cuda()
-		vector_sketch = vector_sketch.cuda()
+		raster_sketch = raster_sketch
+		image = image
+		vector_sketch = vector_sketch
+		if torch.cuda.is_available():
+			raster_sketch = raster_sketch.cuda()
+			image = image.cuda()
+			vector_sketch = vector_sketch.cuda()
 
 		out_coords, batch_num_strokes, batch_stroke_len = self.forward(
 				image, vector_sketch, batch_num_strokes, batch_stroke_len)
@@ -50,9 +54,13 @@ class Photo2Sketch(nn.Module):
 
 	def evaluate(self, batch, batch_idx, output_dir):
 		raster_sketch, image, vector_sketch, batch_num_strokes, batch_stroke_len = batch
-		raster_sketch = raster_sketch.cuda()
-		image = image.cuda()
-		vector_sketch = vector_sketch.cuda()
+		raster_sketch = raster_sketch
+		image = image
+		vector_sketch = vector_sketch
+		if torch.cuda.is_available():
+			raster_sketch = raster_sketch.cuda()
+			image = image.cuda()
+			vector_sketch = vector_sketch.cuda()
 
 		out_coords, batch_num_strokes, batch_stroke_len = self.forward(
 				image, vector_sketch, batch_num_strokes, batch_stroke_len)

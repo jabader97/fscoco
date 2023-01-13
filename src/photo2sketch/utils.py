@@ -113,7 +113,9 @@ def decode_vector_sketch(vector_sketch, batch_num_strokes, batch_stroke_len):
 
     """
     nbatch, max_num_strokes, max_stroke_len, P = vector_sketch.shape
-    mask = torch.zeros(nbatch, max_num_strokes, max_stroke_len).cuda()
+    mask = torch.zeros(nbatch, max_num_strokes, max_stroke_len)
+    if torch.cuda.is_available():
+        mask = mask.cuda
     for batch_id in range(nbatch):
         for stroke_id in range(batch_num_strokes[batch_id]):
             stroke_len = batch_stroke_len[batch_id, stroke_id]

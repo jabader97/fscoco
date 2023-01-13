@@ -6,6 +6,22 @@ from model import Photo2Sketch
 from dataloader import OursScene
 
 
+def setup_logger(args):
+    import os
+    import wandb
+    _ = os.system('wandb login {}'.format(args.wandb_key))
+    os.environ['WANDB_API_KEY'] = args.wandb_key
+    save_path = os.path.join(args.path_aux, 'CheckPoints')
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+    group_name = args.group
+    if args.savename == 'group_plus_seed':
+        args.savename = group_name
+    wandb.init(project=args.project, group=group_name, name=args.savename, dir=save_path,
+               settings=wandb.Settings(start_method='fork'))
+    wandb.config.update(vars(args))
+
+
 dataset_transforms = transforms.Compose([
     transforms.Resize((opts.max_len, opts.max_len)),
     transforms.ToTensor(),
@@ -20,9 +36,14 @@ dataset_val = OursScene(opts, mode='val', transform=dataset_transforms)
 dataloader_val = torch.utils.data.DataLoader(
     dataset=dataset_val, batch_size=opts.batch_size, collate_fn=collate_fn)
 
+if opts.log_online:
+    setup_logger(opts)
 
-model = Photo2Sketch().cuda()
-model.load_state_dict(torch.load('model_small_sketch.ckpt'))
+
+model = Photo2Sketch()
+if torch.cuda.is_available():
+    model = model.cuda()
+# model.load_state_dict(torch.load('model_small_sketch.ckpt'))
 
 for epoch in range(1600, 100000):
     if epoch % 100 == 0:

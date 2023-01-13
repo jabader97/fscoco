@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
+
 class VGG_Network(nn.Module):
 
 	def __init__(self):
@@ -46,11 +47,15 @@ class RNN_Decoder(nn.Module):
 		# input (vector_sketch[:, 0, 0, :])
 		nbatch = enc_features.shape[0]
 
-		prev_scene_token = Variable(torch.zeros((nbatch, self.stroke_hdim))).cuda()
-		init_stroke_token = Variable(torch.FloatTensor([[0, 0, 1, 0, 0]]).repeat(nbatch, 1)).cuda()
-		scene_h = Variable(torch.zeros((nbatch, self.scene_hdim))).cuda()
-		scene_c = Variable(torch.zeros((nbatch, self.scene_hdim))).cuda()
-
+		prev_scene_token = Variable(torch.zeros((nbatch, self.stroke_hdim)))
+		init_stroke_token = Variable(torch.FloatTensor([[0, 0, 1, 0, 0]]).repeat(nbatch, 1))
+		scene_h = Variable(torch.zeros((nbatch, self.scene_hdim)))
+		scene_c = Variable(torch.zeros((nbatch, self.scene_hdim)))
+		if torch.cuda.is_available():
+			prev_scene_token = prev_scene_token.cuda()
+			init_stroke_token = init_stroke_token.cuda()
+			scene_h = scene_h.cuda()
+			scene_c = scene_c.cuda()
 
 		if batch_num_strokes is not None and batch_stroke_len is not None:
 			max_num_strokes = batch_num_strokes.max()
@@ -59,7 +64,9 @@ class RNN_Decoder(nn.Module):
 			max_num_strokes = 200
 			max_stroke_len = 200
 
-		output_coords = torch.zeros(nbatch, max_num_strokes, max_stroke_len, 5).cuda()
+		output_coords = torch.zeros(nbatch, max_num_strokes, max_stroke_len, 5)
+		if torch.cuda.is_available():
+			output_coords = output_coords.cuda()
 
 		for stroke_id in range(max_num_strokes):
 			scene_ctx = torch.cat([enc_features, prev_scene_token], dim=-1)
@@ -68,10 +75,13 @@ class RNN_Decoder(nn.Module):
 
 			if (not self.training or torch.randn(1).item() > 0) and False:
 				raise ValueError
-				stroke_h = Variable(torch.zeros((1, nbatch, self.stroke_hdim))).cuda()
-				stroke_c = Variable(torch.zeros((1, nbatch, self.stroke_hdim))).cuda()
+				stroke_h = Variable(torch.zeros((1, nbatch, self.stroke_hdim)))
+				stroke_c = Variable(torch.zeros((1, nbatch, self.stroke_hdim)))
 				# prev_stroke_token = init_stroke_token * 1.0
 				# prev_stroke_token = vector_sketch[:, stroke_id, 0, :]
+				if torch.cuda.is_available():
+					stroke_h = stroke_h.cuda()
+					stroke_c = stroke_c.cuda()
 
 				stroke_len = batch_stroke_len[:, stroke_id].max()
 				for coord_id in range(stroke_len):
@@ -88,9 +98,11 @@ class RNN_Decoder(nn.Module):
 					output_coords[:, stroke_id, coord_id, :] = out_coords
 
 				# semi-teacher forcing
-				init_stroke_token = vector_sketch[torch.arange(nbatch).cuda(),\
+				arange_nbatch = torch.arange(nbatch)
+				if torch.cuda.is_available():
+					arange_nbatch = arange_nbatch.cuda()
+				init_stroke_token = vector_sketch[arange_nbatch,\
 					stroke_id, batch_stroke_len[:, stroke_id]-1, :]
-
 
 			# if self.training and False:
 			else:
@@ -126,29 +138,34 @@ class RNN_Decoder(nn.Module):
 
 
 if __name__ == '__main__':
-    from options import opts
-    from torchvision import transforms
-    from dataloader import OursScene
-    from utils import collate_fn, draw_tensor_sketch
+	from options import opts
+	from torchvision import transforms
+	from dataloader import OursScene
+	from utils import collate_fn, draw_tensor_sketch
 
-    dataset_transforms = transforms.Compose([
-        transforms.Resize((opts.max_len, opts.max_len)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
+	dataset_transforms = transforms.Compose([
+		transforms.Resize((opts.max_len, opts.max_len)),
+		transforms.ToTensor(),
+		transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+	])
 
-    dataset = OursScene(opts, mode='train', transform=dataset_transforms)   
+	dataset = OursScene(opts, mode='train', transform=dataset_transforms)
 
-    dataloader = torch.utils.data.DataLoader(
-        dataset=dataset, batch_size=opts.batch_size, collate_fn=collate_fn)
+	dataloader = torch.utils.data.DataLoader(
+		dataset=dataset, batch_size=opts.batch_size, collate_fn=collate_fn)
 
-    rnn_decoder = RNN_Decoder().cuda()
-    enc_features = torch.randn(opts.batch_size, 512).cuda()
+	rnn_decoder = RNN_Decoder()
+	enc_features = torch.randn(opts.batch_size, 512)
+	if torch.cuda.is_available():
+		rnn_decoder = rnn_decoder.cuda()
+		enc_features = enc_features.cuda()
 
-    for (raster_sketch, image, vector_sketch, batch_num_strokes, batch_stroke_len)  in dataloader:
-        print ('shape of raster_sketch: {}, image: {}, vector_sketch: {},\
-            batch_num_strokes: {}, batch_stroke_len: {}'.format(
-            raster_sketch.shape, image.shape, vector_sketch.shape, batch_num_strokes.shape, batch_stroke_len.shape))
+	for (raster_sketch, image, vector_sketch, batch_num_strokes, batch_stroke_len)  in dataloader:
+		print ('shape of raster_sketch: {}, image: {}, vector_sketch: {},\
+			batch_num_strokes: {}, batch_stroke_len: {}'.format(
+			raster_sketch.shape, image.shape, vector_sketch.shape, batch_num_strokes.shape, batch_stroke_len.shape))
 
-        vector_sketch = vector_sketch.cuda()
-        rnn_decoder(enc_features, vector_sketch, batch_num_strokes, batch_stroke_len)
+		vector_sketch = vector_sketch
+		if torch.cuda.is_available():
+			vector_sketch = vector_sketch.cuda()
+		rnn_decoder(enc_features, vector_sketch, batch_num_strokes, batch_stroke_len)
