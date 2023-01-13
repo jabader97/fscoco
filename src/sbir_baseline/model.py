@@ -6,11 +6,11 @@ import pytorch_lightning as pl
 
 class TripletNetwork(pl.LightningModule):
 
-    def __init__(self):
+    def __init__(self, opts):
         super().__init__()
         self.img_embedding_network = VGG_Network()
         # self.img_embedding_network = pvt_v2.pvt_v2_b0(pretrained=True, num_classes=0)
-        self.loss = nn.TripletMarginLoss(margin=0.2)
+        self.loss = nn.TripletMarginLoss(margin=opts.triplet_margin)
         self.batch_size=1
 
     def forward(self, x):
@@ -18,7 +18,7 @@ class TripletNetwork(pl.LightningModule):
         return feature
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
+        optimizer = torch.optim.Adam(self.parameters(), lr=1e-6)
         return optimizer
 
     def training_step(self, batch, batch_idx):
@@ -60,7 +60,7 @@ class TripletNetwork(pl.LightningModule):
         rank1 = rank.le(1).sum().numpy() / rank.shape[0]
         rank5 = rank.le(5).sum().numpy() / rank.shape[0]
         rank10 = rank.le(10).sum().numpy() / rank.shape[0]
-        rankM = rank.mean().numpy()
+        rankM = rank.mean()
 
         print ('Metrics -- rank1: {}, rank5: {}, rank10: {}, meanK: {}'.format(
             rank1, rank5, rank10, rankM))
